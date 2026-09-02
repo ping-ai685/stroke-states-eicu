@@ -93,6 +93,14 @@ subdirectory that the next one reads.
 `figure_labels.py` holds the display text for the figures in both languages, so
 the English and Chinese sets are drawn by the same plotting code.
 
+**A note on the Chinese scripts.** The investigator team worked bilingually, and
+a Chinese version of the manuscript was maintained alongside the English one as
+an internal working document — it was never submitted anywhere. Scripts `27`,
+`37` and `43` build its tables, and `figure_labels.py` carries the Chinese figure
+labels. They are kept here because the repository should reflect how the analysis
+was actually carried out, and because `figure_labels.py` is a dependency of the
+figure code in either language.
+
 ---
 
 ## Running it
