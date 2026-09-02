@@ -1,0 +1,43 @@
+term,source_field,class,adjudication_note,freeze_date
+Oral ETT,respiratoryCare.airwaytype,INVASIVE vent,Artificial invasive airway directly documented.,2026-08-23
+Tracheostomy,respiratoryCare.airwaytype,INVASIVE vent,Artificial invasive airway directly documented.,2026-08-23
+Nasal ETT,respiratoryCare.airwaytype,INVASIVE vent,Artificial invasive airway directly documented.,2026-08-23
+respFlowPtVentData | RR (patient),respiratoryCharting label,vent-setting evidence,Ventilator-setting/vent-data label; timing evidence only after invasive status is established elsewhere.,2026-08-23
+respFlowSettings | PEEP,respiratoryCharting label,vent-setting evidence,Ventilator-setting/vent-data label; timing evidence only after invasive status is established elsewhere.,2026-08-23
+respFlowSettings | TV/kg IBW,respiratoryCharting label,vent-setting evidence,Ventilator-setting/vent-data label; timing evidence only after invasive status is established elsewhere.,2026-08-23
+respFlowSettings | Vent Rate,respiratoryCharting label,vent-setting evidence,Ventilator-setting/vent-data label; timing evidence only after invasive status is established elsewhere.,2026-08-23
+respFlowSettings | Tidal Volume (set),respiratoryCharting label,vent-setting evidence,Ventilator-setting/vent-data label; timing evidence only after invasive status is established elsewhere.,2026-08-23
+respFlowPtVentData | Total RR,respiratoryCharting label,vent-setting evidence,Ventilator-setting/vent-data label; timing evidence only after invasive status is established elsewhere.,2026-08-23
+respFlowPtVentData | Mean Airway Pressure,respiratoryCharting label,vent-setting evidence,Ventilator-setting/vent-data label; timing evidence only after invasive status is established elsewhere.,2026-08-23
+respFlowPtVentData | Exhaled TV (patient),respiratoryCharting label,vent-setting evidence,Ventilator-setting/vent-data label; timing evidence only after invasive status is established elsewhere.,2026-08-23
+respFlowPtVentData | Exhaled MV,respiratoryCharting label,vent-setting evidence,Ventilator-setting/vent-data label; timing evidence only after invasive status is established elsewhere.,2026-08-23
+respFlowPtVentData | Peak Insp. Pressure,respiratoryCharting label,vent-setting evidence,Ventilator-setting/vent-data label; timing evidence only after invasive status is established elsewhere.,2026-08-23
+respFlowSettings | Pressure Support,respiratoryCharting label,vent-setting evidence,Ventilator-setting/vent-data label; timing evidence only after invasive status is established elsewhere.,2026-08-23
+respFlowSettings | PEEP/CPAP,respiratoryCharting label,NON-invasive (exclude),CPAP/NIV-type support; excluded by Paper 1 invasive-ventilation definition.,2026-08-23
+respFlowSettings | CPAP,respiratoryCharting label,NON-invasive (exclude),CPAP/NIV-type support; excluded by Paper 1 invasive-ventilation definition.,2026-08-23
+respFlowCareData | Mean Airway Pressure,respiratoryCharting label,vent-setting evidence,Ventilator-setting/vent-data label; timing evidence only after invasive status is established elsewhere.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation,treatment.treatmentstring,INVASIVE vent,Treatment hierarchy explicitly documents mechanical ventilation without an NIV qualifier.,2026-08-23
+pulmonary|ventilation and oxygenation|CPAP/PEEP therapy,treatment.treatmentstring,NON-invasive (exclude),CPAP/NIV-type support; excluded by Paper 1 invasive-ventilation definition.,2026-08-23
+pulmonary|ventilation and oxygenation|non-invasive ventilation,treatment.treatmentstring,NON-invasive (exclude),Explicit non-invasive ventilation; excluded by Paper 1 definition.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation|assist controlled,treatment.treatmentstring,INVASIVE vent,Treatment hierarchy explicitly documents mechanical ventilation without an NIV qualifier.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation|volume controlled,treatment.treatmentstring,INVASIVE vent,Treatment hierarchy explicitly documents mechanical ventilation without an NIV qualifier.,2026-08-23
+pulmonary|ventilation and oxygenation|CPAP/PEEP therapy|5-10 cm H2O,treatment.treatmentstring,NON-invasive (exclude),CPAP/NIV-type support; excluded by Paper 1 invasive-ventilation definition.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation|tidal volume 6-10 ml/kg,treatment.treatmentstring,INVASIVE vent,Treatment hierarchy explicitly documents mechanical ventilation without an NIV qualifier.,2026-08-23
+pulmonary|ventilation and oxygenation|non-invasive ventilation|face mask,treatment.treatmentstring,NON-invasive (exclude),Explicit non-invasive ventilation; excluded by Paper 1 definition.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation|pressure support,treatment.treatmentstring,INVASIVE vent,Treatment hierarchy explicitly documents mechanical ventilation without an NIV qualifier.,2026-08-23
+renal|dialysis|C V V H D,treatment.treatmentstring,CRRT,Continuous renal replacement modality.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation|pressure controlled,treatment.treatmentstring,INVASIVE vent,Treatment hierarchy explicitly documents mechanical ventilation without an NIV qualifier.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation|synchronized intermittent,treatment.treatmentstring,INVASIVE vent,Treatment hierarchy explicitly documents mechanical ventilation without an NIV qualifier.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation|non-invasive ventilation,treatment.treatmentstring,NON-invasive (exclude),Explicit non-invasive ventilation; excluded by Paper 1 definition.,2026-08-23
+pulmonary|ventilation and oxygenation|CPAP/PEEP therapy|10-15 cm H2O,treatment.treatmentstring,NON-invasive (exclude),CPAP/NIV-type support; excluded by Paper 1 invasive-ventilation definition.,2026-08-23
+pulmonary|ventilation and oxygenation|CPAP/PEEP therapy|reduce PEEP as tolerated,treatment.treatmentstring,NON-invasive (exclude),CPAP/NIV-type support; excluded by Paper 1 invasive-ventilation definition.,2026-08-23
+pulmonary|ventilation and oxygenation|CPAP/PEEP therapy|titrate PEEP,treatment.treatmentstring,NON-invasive (exclude),CPAP/NIV-type support; excluded by Paper 1 invasive-ventilation definition.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation|non-invasive ventilation|face mask,treatment.treatmentstring,NON-invasive (exclude),Explicit non-invasive ventilation; excluded by Paper 1 definition.,2026-08-23
+renal|dialysis|C V V H,treatment.treatmentstring,CRRT,Continuous renal replacement modality.,2026-08-23
+pulmonary|ventilation and oxygenation|CPAP/PEEP therapy|> 15 cm H2O,treatment.treatmentstring,NON-invasive (exclude),CPAP/NIV-type support; excluded by Paper 1 invasive-ventilation definition.,2026-08-23
+pulmonary|ventilation and oxygenation|CPAP/PEEP therapy|reduce CPAP as tolerated,treatment.treatmentstring,NON-invasive (exclude),CPAP/NIV-type support; excluded by Paper 1 invasive-ventilation definition.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation|tidal volume < 6 ml/kg,treatment.treatmentstring,INVASIVE vent,Treatment hierarchy explicitly documents mechanical ventilation without an NIV qualifier.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation|permissive hypercapnea,treatment.treatmentstring,INVASIVE vent,Treatment hierarchy explicitly documents mechanical ventilation without an NIV qualifier.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation|non-invasive ventilation|nasal mask,treatment.treatmentstring,NON-invasive (exclude),Explicit non-invasive ventilation; excluded by Paper 1 definition.,2026-08-23
+pulmonary|ventilation and oxygenation|mechanical ventilation|volume assured,treatment.treatmentstring,INVASIVE vent,Treatment hierarchy explicitly documents mechanical ventilation without an NIV qualifier.,2026-08-23
+pulmonary|ventilation and oxygenation|non-invasive ventilation|nasal mask,treatment.treatmentstring,NON-invasive (exclude),Explicit non-invasive ventilation; excluded by Paper 1 definition.,2026-08-23

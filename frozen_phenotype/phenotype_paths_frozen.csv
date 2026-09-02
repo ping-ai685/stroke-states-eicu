@@ -1,0 +1,36 @@
+diagnosisstring,subtypes,status,n_stays,icd_codes_attached,note,freeze_date
+neurologic|disorders of vasculature|stroke,unspecified,include,3897,"436, I67.8",generic stroke label; eICU codes it 436/I67.8,2026-08-23
+neurologic|disorders of vasculature|stroke|ischemic stroke,AIS,include,3139,"434.91, I63.50",,2026-08-23
+neurologic|disorders of vasculature|stroke|ischemic stroke|left sided,AIS,include,430,"434.91, I63.50",,2026-08-23
+neurologic|disorders of vasculature|stroke|ischemic stroke|right sided,AIS,include,406,"434.91, I63.50",,2026-08-23
+neurologic|disorders of vasculature|stroke|ischemic stroke|cardioembolic,AIS,include,268,"434.11, I63.40",,2026-08-23
+neurologic|disorders of vasculature|stroke|ischemic stroke|atherosclerotic thrombosis,AIS,include,102,"434.91, I63.50",,2026-08-23
+neurologic|disorders of vasculature|stroke|ischemic stroke|cortical,AIS,include,102,"434.91, I63.50",,2026-08-23
+neurologic|disorders of vasculature|stroke|ischemic stroke|atheroembolic,AIS,include,67,"434.11, I63.40",,2026-08-23
+neurologic|disorders of vasculature|stroke|ischemic stroke|dissection of cervicocerebral arteries,AIS,include,49,"443.24, I77.74",,2026-08-23
+neurologic|disorders of vasculature|stroke|ischemic stroke|brainstem,AIS,include,48,"434.91, I63.50",,2026-08-23
+neurologic|disorders of vasculature|stroke|ischemic stroke|lacunar infarct,AIS,include,40,"434.91, I63.50",,2026-08-23
+neurologic|disorders of vasculature|stroke|ischemic stroke|from cortical venous thrombosis,AIS,include,5,I67.6,,2026-08-23
+"neurologic|disorders of vasculature|stroke|ischemic stroke|vasospasm, including cocaine-induced",AIS,include,2,"435.9, I67.8",,2026-08-23
+neurologic|disorders of vasculature|stroke|ischemic stroke|perioperative,AIS,review,22,"434.91, I63.50",peri-procedural rather than spontaneous stroke,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke,ICH,include,1834,"432.9, I62.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|hypertensive,ICH,include,403,"431, I61.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|hypertensive|thalamus,ICH,include,53,"431, I61.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|hypertensive|cerebellar,ICH,include,45,"431, I61.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|hypertensive|internal capsule,ICH,include,19,"431, I61.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|hypertensive|pons,ICH,include,9,"431, I61.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|left sided,ICH,include,252,"432.9, I62.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|right sided,ICH,include,257,"432.9, I62.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|cortical,ICH,include,39,"432.9, I62.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|brainstem,ICH,include,36,"432.9, I62.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|from amyloid angiopathy,ICH,include,32,I68.0,,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|transformation of ischemic stroke,AIS+ICH,include,172,"432.9, I62.9",carries both subtypes; Paper 1 precedence then labels it AIS,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|into pre-existent CNS mass,ICH,review,19,"432.9, I62.9","haemorrhage into a tumour, not primary stroke",2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|postoperative,ICH,review,6,"997.02, I97.821",post-surgical haemorrhage,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|subarachnoid hemorrhage,SAH,include,704,"430, I60.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|subarachnoid hemorrhage|from ruptured berry aneurysm,SAH,include,124,"430, I60.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|subarachnoid hemorrhage|from ruptured AV malformation,SAH,include,47,"430, I60.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|subarachnoid hemorrhage|from cavernous angioma,SAH,include,4,"430, I60.9",,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|subarachnoid hemorrhage|with hydrocephalus,SAH,include,132,"331.3, 430, G91.0, I60.9",complication of SAH,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|subarachnoid hemorrhage|with vasospasm,SAH,include,41,"430, 435.9, G45.9, I60.9",complication of SAH,2026-08-23
+neurologic|disorders of vasculature|stroke|hemorrhagic stroke|subarachnoid hemorrhage|traumatic,-,exclude,48,852.00,TRAUMATIC SAH inside the stroke branch; a prefix match would admit it,2026-08-23

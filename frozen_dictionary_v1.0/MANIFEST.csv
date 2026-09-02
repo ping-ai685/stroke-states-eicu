@@ -1,0 +1,5 @@
+file,n_terms,detail,freeze_date
+terms_drugs.csv,112,"65 vasoactive support, 47 sedative",2026-08-23
+terms_urine_sources.csv,73,"urinary sources, quantitative mL only",2026-08-23
+terms_ventilation_crrt.csv,42,"13 invasive, 15 NIV-exclude, 12 vent-setting timing, 2 CRRT",2026-08-23
+hospital_vent_ascertainment.csv,140,"36 hospitals excluded, 779 patients",2026-08-23
