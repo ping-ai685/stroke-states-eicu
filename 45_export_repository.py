@@ -24,9 +24,15 @@ rows = list(csv.DictReader(MANIFEST.open(encoding="utf-8")))
 publish = [r for r in rows if r["verdict"] == "PUBLISH"]
 assert publish, "manifest has no PUBLISH rows -- run 44_repository_audit.py first"
 
+# Clear the previous export, but never the version-control directory: once this
+# folder has been pushed, deleting .git destroys the link to the remote and the
+# commit history with it.
 if DEST.exists():
-    shutil.rmtree(DEST)
-DEST.mkdir(parents=True)
+    for child in DEST.iterdir():
+        if child.name in {".git", ".gitignore"}:
+            continue
+        shutil.rmtree(child) if child.is_dir() else child.unlink()
+DEST.mkdir(parents=True, exist_ok=True)
 
 for r in publish:
     src = HERE / r["path"]

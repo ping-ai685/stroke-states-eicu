@@ -33,11 +33,13 @@ Access is open to any investigator who becomes a credentialed PhysioNet user,
 completes the CITI *Data or Specimens Only Research* training, and signs the
 agreement.
 
-Every file in this repository was classified before publication by
-`44_repository_audit.py`, which inspects the columns of each tabular file rather
-than trusting its name or size, and excludes anything carrying a patient
-identifier or hospital-level derived statistics. The resulting decisions are
-recorded in `repository_manifest.csv`.
+Every file was classified before publication by `44_repository_audit.py`, which
+inspects the columns of each tabular file rather than trusting its name or size,
+and excludes anything carrying a patient identifier or hospital-level derived
+statistics. That script runs against the full working directory, so it names
+files — patient-level tables, intermediate results, manuscript drafts — that are
+deliberately absent here; the decision for each is recorded in
+`repository_manifest.csv`.
 
 **The frozen model parameters are not posted here.** They are aggregate
 quantities containing no patient-level records, but they are derived from
@@ -87,19 +89,12 @@ subdirectory that the next one reads.
 | Independent refitting | `21`, `24` | fit eICU from scratch and compare with the discovery states |
 | Prediction | `29`–`32`, `34`–`36`, `38`–`39` | the predictor ladder, three horizons, the sequence-model ceiling |
 | Verification | `23` | re-derive every headline number in the manuscript from its source file |
-| Tables and figures | `25`–`28`, `33`, `37`, `40`–`43` | everything reported in the article |
+| Tables and figures | `25`, `26`, `28`, `33`, `40`–`42` | everything reported in the article |
 | Repository audit | `44` | the classification that produced this repository |
 
-`figure_labels.py` holds the display text for the figures in both languages, so
-the English and Chinese sets are drawn by the same plotting code.
-
-**A note on the Chinese scripts.** The investigator team worked bilingually, and
-a Chinese version of the manuscript was maintained alongside the English one as
-an internal working document — it was never submitted anywhere. Scripts `27`,
-`37` and `43` build its tables, and `figure_labels.py` carries the Chinese figure
-labels. They are kept here because the repository should reflect how the analysis
-was actually carried out, and because `figure_labels.py` is a dependency of the
-figure code in either language.
+`figure_labels.py` holds the display text for the figures in both English and
+Chinese, because the investigator team worked bilingually and the two language
+versions of each figure are drawn by the same plotting code.
 
 ---
 

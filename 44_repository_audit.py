@@ -39,6 +39,16 @@ HOSPITAL_COLS = {"hospitalid"}
 NEVER_EXT = {".pt", ".pkl", ".pth", ".joblib", ".env", ".key", ".pem"}
 CODE_EXT = {".py"}
 
+# The team worked bilingually and kept a Chinese version of the manuscript as an
+# internal document. These three build its tables; nothing else reads them, so
+# they are left out of the public repository, which documents the submitted
+# article. figure_labels.py stays: the figure code imports it in either language.
+CN_ONLY = {
+    "27_build_manuscript_tables_CN.py",
+    "37_build_aim4_tables_CN.py",
+    "43_build_jamia_tables_CN.py",
+}
+
 PUBLISH_EXACT = {
     "README.md",
     "frozen_dictionary_v1.0/MANIFEST.csv",
@@ -60,6 +70,8 @@ def classify(p: Path):
     if ext in NEVER_EXT:
         return "EXCLUDE", f"model binary or secret ({ext})"
     if ext in CODE_EXT:
+        if rel in CN_ONLY:
+            return "OMIT", "builds the Chinese working version, not the submitted article"
         return "PUBLISH", "analysis code"
     if ext == ".csv":
         try:
