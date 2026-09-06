@@ -1,0 +1,259 @@
+"""
+Paper 2: check the claims that are not numbers.
+
+Scripts 23, 47 and 49 all check digits. But the sentences a reviewer will test
+first are the ones with no digit in them at all -- "all nine reproduced the
+direction", "the ordering is identical throughout", "correlations above 0.97".
+Those were verified by reading a table, once, by one person. Each one below is
+restated as something a computer can fail.
+"""
+import numpy as np
+import pandas as pd
+from pathlib import Path
+
+HERE = Path(__file__).parent
+R = []
+
+
+def claim(text, ok, detail=""):
+    R.append((bool(ok), text, detail))
+    print(f"  {'OK ' if ok else 'BAD'}  {text}")
+    if detail:
+        print(f"         {detail}")
+
+
+print("Results / Abstract\n")
+
+# "All five transportability criteria were met in all four scopes."
+tm = pd.read_csv(HERE / "results_full_model/transport_metrics_full.csv")
+met = ((tm.min_profile_corr >= 0.80) & (tm.min_prevalence_pct >= 5.0)
+       & (tm.transition_rank_corr >= 0.80) & (tm.max_self_transition_diff <= 0.10)
+       & (tm.min_profile_corr > tm.null_p95))
+claim("五条迁移标准在四个范围内全部达成",
+      len(tm) == 4 and met.all(),
+      f"{int(met.sum())}/{len(tm)} 个范围通过全部五条")
+
+# "the 38 of the 176 hospitals that satisfy both eligibility rules". Nothing else
+# guards the hospital counts, and a reader will recompute them from the scopes.
+_a = pd.read_csv(HERE / "results_full_model/eicu_state_assignments_full_A1.csv")
+_e = set(pd.read_csv(HERE / "cohort/patient_level_cohort_eligible.csv").patientunitstayid)
+_H = {"full": _a,
+      "GCS-eligible": _a[_a.patientunitstayid.isin(_e)],
+      "vent-ascertainable": _a[_a.vent_ascertainable == 1],
+      "both": _a[_a.patientunitstayid.isin(_e) & (_a.vent_ascertainable == 1)]}
+_n = {k: v.hospitalid.nunique() for k, v in _H.items()}
+claim("全队列 176 家医院，两条规则都满足的是 38 家",
+      _n["full"] == 176 and _n["both"] == 38,
+      "  ".join(f"{k} {v}" for k, v in _n.items()))
+# The de novo refit used the strictest scope, not the full 176-hospital cohort.
+# Reading the manuscript, one would have assumed the full cohort: neither Methods
+# nor Results said otherwise until this was checked.
+_dn = pd.read_csv(HERE / "results_denovo/eicu_denovo_assignments.csv")
+_a2 = pd.read_csv(HERE / "results_full_model/eicu_state_assignments_full_A1.csv")
+_dnh = _a2[_a2.patientunitstayid.isin(set(_dn.patientunitstayid))].hospitalid.nunique()
+claim("从零拟合用的是 38 家医院 4296 名患者，不是全队列",
+      _dnh == 38 and _dn.patientunitstayid.nunique() == 4296,
+      f"医院 {_dnh}，患者 {_dn.patientunitstayid.nunique():,}，窗口 {len(_dn):,}")
+for _f, _w in [("manuscript/methods_jamia_EN.md", "in the strictest scope"),
+               ("manuscript/results_jamia_EN.md", "the 38 hospitals"),
+               ("manuscript/abstract_jamia_EN.md", "de novo in the strictest scope"),
+               ("manuscript/discussion_jamia_EN.md", "within those same 38 hospitals"),
+               ("manuscript/cover_letter_JAMIA.md", "within the 38 hospitals")]:
+    claim(f"{_f.split('/')[-1]} 交代了从零拟合的范围",
+          _w in (HERE / _f).read_text(), f"应含「{_w}」")
+
+_rj = (HERE / "manuscript/results_jamia_EN.md").read_text()
+claim("结果部分说明了这一项分析为何只用 38 家",
+      "38 of the 176 hospitals" in _rj and "the other analyses use the full cohort" in _rj)
+
+# "All nine state-outcome comparisons reproduced the direction of association."
+vs = pd.read_csv(HERE / "results_full_model/outcome_association_vs_mimic.csv")
+same = (vs.MIMIC_OR - 1).apply(np.sign) == (vs.eICU_OR - 1).apply(np.sign)
+claim("九项状态×结局比较全部重现关联方向",
+      len(vs) == 9 and same.all(),
+      f"{int(same.sum())}/{len(vs)} 项方向一致（按 OR 相对 1 的正负重算，未用 CSV 自带的 direction_same 列）")
+
+# "with exact rank order for invasive ventilation and ICU death"
+for out in vs.outcome.unique():
+    q = vs[vs.outcome == out]
+    ok = list(q.sort_values("MIMIC_OR").state) == list(q.sort_values("eICU_OR").state)
+    if "ventilation" in out or "death" in out:
+        claim(f"次序完全保留：{out}", ok,
+              "MIMIC 次序 " + " < ".join(q.sort_values("MIMIC_OR").state.str[-14:]))
+
+# "States persisted across 90.7% of pairs" / "a no-change rule scores 0.906"
+m = pd.read_csv(HERE / "prediction/metrics_by_model.csv")
+ef = m[(m.scope == "eicu-full") & (m.model == "L2")].iloc[0]
+claim("90.7% 的窗口配对状态不变", abs((100 - ef.changed_pct) - 90.7) < 0.05,
+      f"1 − changed_pct = {100 - ef.changed_pct:.2f}%")
+claim("不变规则准确率 0.906", abs((100 - ef.changed_pct) / 100 - 0.906) < 0.0006)
+
+# Results now quotes sensitivity at all three horizons for both models. These are
+# prose numbers, so nothing else guards them.
+_rjE = (HERE / "manuscript/results_jamia_EN.md").read_text()
+_MH2 = pd.read_csv(HERE / "prediction/multihorizon_metrics.csv")
+_L62 = pd.read_csv(HERE / "prediction/metrics_L6.csv")
+_fz, _sq = [], []
+for _h in [6, 12, 24]:
+    _fz.append(f"{float(_MH2[(_MH2.scope=='eicu-full')&(_MH2.horizon_h==_h)&(_MH2.model=='L2')].change_sens_at_90spec.iloc[0])*100:.1f}")
+    _sq.append(f"{float(_L62[(_L62.scope=='eicu-full')&(_L62.horizon_h==_h)].change_sens_at_90spec.iloc[0])*100:.1f}")
+claim("结果正文引用的六个灵敏度与结果文件一致",
+      all(f"{v}%" in _rjE or v in _rjE for v in _fz + _sq),
+      f"冻结 {_fz}，序列 {_sq}")
+# The AUROC gap the Results now states before the retained-discrimination ratio.
+_g6 = float(_L62[(_L62.scope=='eicu-full')&(_L62.horizon_h==6)].change_auroc.iloc[0]) - \
+      float(_MH2[(_MH2.scope=='eicu-full')&(_MH2.horizon_h==6)&(_MH2.model=='L2')].change_auroc.iloc[0])
+_g24 = float(_L62[(_L62.scope=='eicu-full')&(_L62.horizon_h==24)].change_auroc.iloc[0]) - \
+       float(_MH2[(_MH2.scope=='eicu-full')&(_MH2.horizon_h==24)&(_MH2.model=='L2')].change_auroc.iloc[0])
+claim("结果正文的 AUROC 差距 0.057 → 0.018 与数据一致",
+      abs(_g6 - 0.057) < 0.0006 and abs(_g24 - 0.018) < 0.0006
+      and "from 0.057 to 0.018" in _rjE,
+      f"6h 差 {_g6:.4f}，24h 差 {_g24:.4f}")
+
+print("\nSupplementary Table S4\n")
+
+# "Every difference excludes zero in both databases and in all four eICU scopes."
+pc = pd.read_csv(HERE / "prediction/prediction_contrasts.csv")
+lo = [c for c in pc.columns if c.endswith("_lo") or c == "lo"][0]
+hi = [c for c in pc.columns if c.endswith("_hi") or c == "hi"][0]
+d = [c for c in pc.columns if "diff" in c or "delta" in c][0]
+excl = ~((pc[lo] <= 0) & (pc[hi] >= 0))
+claim("每一个相邻梯级之差都不含 0", excl.all(),
+      f"{int(excl.sum())}/{len(pc)} 个对比区间不跨 0；数据集 {sorted(pc.scope.unique())}")
+
+# "the ordering of predictors is identical throughout"
+MHo = pd.read_csv(HERE / "prediction/multihorizon_metrics.csv")
+orders = {}
+for (sc, h), g in MHo.groupby(["scope", "horizon_h"]):
+    orders[(sc, h)] = tuple(g.sort_values("change_auroc").model)
+uniq = set(orders.values())
+claim("预测器的排序在所有范围与跨度上完全一致", len(uniq) == 1,
+      f"出现 {len(uniq)} 种排序；" + ("一致为 " + " < ".join(next(iter(uniq))) if len(uniq) == 1
+                                       else str(sorted(uniq))[:200]))
+
+# "Discrimination rises rather than decays."
+rise = all(list(g.sort_values("horizon_h").change_auroc) ==
+           sorted(g.sort_values("horizon_h").change_auroc)
+           for _, g in MHo[MHo.model == "L2"].groupby("scope"))
+claim("跨度拉长时判别力上升而非衰减（冻结模型 L2）", rise)
+
+# Table 4, panel B: the new sensitivity column, and the two values the caption
+# quotes from it. Caption and cell are generated from one string in script 42, but
+# nothing stops a later edit from retyping one of them.
+tj = (HERE / "manuscript/tables_jamia.md").read_text()
+_MH = pd.read_csv(HERE / "prediction/multihorizon_metrics.csv")
+_L6 = pd.read_csv(HERE / "prediction/metrics_L6.csv")
+for h in [6, 12, 24]:
+    a = float(_MH[(_MH.scope == "eicu-full") & (_MH.horizon_h == h)
+                  & (_MH.model == "L2")].change_sens_at_90spec.iloc[0]) * 100
+    b = float(_L6[(_L6.scope == "eicu-full")
+                  & (_L6.horizon_h == h)].change_sens_at_90spec.iloc[0]) * 100
+    cell = f"{a:.1f} / {b:.1f}"
+    claim(f"表 4 面板 B：{h} 小时灵敏度格「{cell}」与结果文件一致", cell in tj)
+_s6 = f"{float(_MH[(_MH.scope=='eicu-full')&(_MH.horizon_h==6)&(_MH.model=='L2')].change_sens_at_90spec.iloc[0])*100:.1f}"
+_s24 = f"{float(_MH[(_MH.scope=='eicu-full')&(_MH.horizon_h==24)&(_MH.model=='L2')].change_sens_at_90spec.iloc[0])*100:.1f}"
+claim("表 4 图注引用的两个灵敏度与表格单元一致",
+      f"identifies {_s6}% of transitions at six hours" in tj and f"{_s24}% at" in tj,
+      f"图注应为 {_s6}% 与 {_s24}%")
+
+# Wording, not arithmetic. "独立可重发现性" stacks 可+重+发现+性 into a
+# nominalisation Chinese does not form, and a reader has to guess where it splits.
+# The Chinese uses verb phrases instead. Nothing else in this suite checks wording,
+# and this is the class of defect the numeric checks cannot see.
+_BAD_CN = ["可重发现性", "独立可重发现"]
+for _f in ["title_page_CN.md", "abstract_jamia_CN.md", "intro_jamia_CN.md",
+           "methods_jamia_CN.md", "results_jamia_CN.md", "discussion_jamia_CN.md",
+           "tables_jamia_CN.md", "figure_legends_jamia_CN.md"]:
+    _p = HERE / "manuscript" / _f
+    if not _p.exists():
+        continue
+    _t = _p.read_text()
+    _hit = [w for w in _BAD_CN if w in _t]
+    claim(f"{_f} 未使用生造的「可重发现性」", not _hit, f"命中 {_hit}" if _hit else "")
+
+# The AI disclosure was settled by the authors, twice: it must state that Claude
+# drafted interpretive passages (an earlier version denied this), that ChatGPT
+# touched no code or design, and it must not claim the authors corrected errors --
+# a clause the authors decided against. Wording, not arithmetic; nothing else here
+# would notice it drifting back.
+for _lang, _f, _must, _mustnt in [
+    ("EN", "declarations_EN.md",
+     ["including passages that interpret the findings",
+      "not used for code, study design or analysis",
+      "Neither tool is listed as an author"],
+     ["corrected errors introduced"]),
+    ("CN", "declarations_CN.md",
+     ["包括对结果作出解读的段落", "未用于代码、研究设计或分析", "均未列为作者"],
+     ["纠正了其间出现的错误"]),
+]:
+    _t = (HERE / "manuscript" / _f).read_text()
+    _miss = [w for w in _must if w not in _t]
+    _bad = [w for w in _mustnt if w in _t]
+    claim(f"{_lang} AI 声明与作者的两次决定一致", not _miss and not _bad,
+          (f"缺 {_miss}" if _miss else "") + (f" 不该有 {_bad}" if _bad else ""))
+
+print("\nDiscussion\n")
+
+# "they are independently rediscovered with correlations above 0.97"
+k3 = pd.read_csv(HERE / "results_denovo/denovo_K3_matching.csv")
+k4 = pd.read_csv(HERE / "results_denovo/denovo_K4_matching.csv")
+best = {}
+for tag, t in [("K=3", k3), ("K=4", k4)]:
+    for s, g in t.groupby("best_match_state"):
+        best[(tag, s)] = g.best_match_correlation.max()
+three = [s for s in k3.best_match_state.unique()
+         if "impairment-low support" not in s]
+vals = {(t, s): best[(t, s)] for t in ("K=3", "K=4") for s in three if (t, s) in best}
+claim("那三个状态在两个解中都被独立重发现，K=3 相关 0.971–0.991、K=4 相关 0.962–0.979",
+      all(abs(min(v for (t,_),v in vals.items() if t==tag) - lo) < 0.0006 and
+          abs(max(v for (t,_),v in vals.items() if t==tag) - hi) < 0.0006
+          for tag, lo, hi in [("K=3", 0.971, 0.991), ("K=4", 0.962, 0.979)]),
+      "; ".join(f"{t} {s[-20:]}={v:.3f}" for (t, s), v in sorted(vals.items())))
+
+# "Two thirds of its windows are placed with the respiratory-support state under
+#  both solutions -- 64.1% and 66.6% -- and only 13.0% and 20.6% with the
+#  preserved state." Re-read out of the built crosstab rather than recomputed,
+#  so a change in script 46 that the prose does not follow shows up here.
+md = (HERE / "manuscript/denovo_crosstab.md").read_text()
+for want in ["64.1", "66.6", "13.0", "20.6"]:
+    claim(f"交叉表里含 {want}%", want in md)
+disc = (HERE / "manuscript/discussion_jamia_EN.md").read_text()
+claim("讨论引用的这四个数与交叉表一致",
+      all(w in disc for w in ["64.1%", "66.6%", "13.0%", "20.6%"]))
+
+# Cover letter: removing the organ-support variables drops only the fourth state
+# below the prespecified 0.80 threshold, the other three staying above 0.97.
+_tf = pd.read_csv(HERE / "results_treatment_free/per_state_transport.csv").set_index("state")
+_fu = pd.read_csv(HERE / "results_full_model/per_state_full.csv")
+_fu = _fu[_fu.scope == "both"].set_index("state")
+_D = "neurological impairment-low support"
+_others = [s_ for s_ in _tf.index if s_ != _D]
+claim("去掉器官支持变量后，只有 D 跌破 0.80 门槛，另三个仍在 0.96 以上",
+      _tf.loc[_D, "corr_eligible"] < 0.80
+      and all(_tf.loc[s_, "corr_eligible"] > 0.96 for s_ in _others),
+      f"D {_tf.loc[_D,'corr_eligible']:.3f}（完整模型 {_fu.loc[_D,'profile_corr']:.3f}）；"
+      + "，".join(f"{s_[-18:]} {_tf.loc[s_,'corr_eligible']:.3f}" for s_ in _others))
+
+# "Neither solution contained a state corresponding to neurological
+#  impairment-low support, whose highest correlation with any de novo state was
+#  0.183." The 0.183 must be the maximum over BOTH solutions, not just K=4.
+COL = "neurological impairment-low support"
+mx = max(pd.read_csv(HERE / "results_denovo" / f, index_col=0)[COL].max()
+         for f in ["denovo_K3_full_corr_matrix.csv", "denovo_K4_full_corr_matrix.csv"])
+claim("D 与任何 de novo 状态的最高相关为 0.183（两个解合计）",
+      abs(mx - 0.183) < 0.0006, f"K=3 与 K=4 两矩阵中该列的最大值 = {mx:.3f}")
+
+# "Fourteen of the fifteen were made with no outcome result visible."
+log = pd.read_csv(HERE / "manuscript/supplementary_amendment_log.csv")
+n_no = int((log.outcome_results_visible_at_the_time == "No").sum())
+claim("十五条修订中十四条在无结局结果可见时做出",
+      len(log) == 15 and n_no == 14, f"共 {len(log)} 条，结局不可见 {n_no} 条")
+
+print()
+bad = [t for ok, t, _ in R if not ok]
+print(f"{len(R) - len(bad)}/{len(R)} 条论断通过")
+if bad:
+    print("\n❌ 站不住的论断：")
+    for t in bad:
+        print("   ", t)
+    raise SystemExit(1)

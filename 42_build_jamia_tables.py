@@ -90,16 +90,25 @@ panel_a = md(rows, ["Predictor", "Information used", "Fitted",
                     "eICU sens. at 90% spec., %"])
 
 rows = []
+# The caption quotes two of these; taking them from the same strings the table
+# prints makes it impossible for caption and cell to round differently.
+SENS_BY_H = {}
 for h in [6, 12, 24]:
     e = MH[(MH.scope == "eicu-full") & (MH.horizon_h == h)].set_index("model")
     q = L6[(L6.scope == "eicu-full") & (L6.horizon_h == h)].iloc[0]
     sc = SC[(SC.scope == "eicu-full") & (SC.horizon_h == h)].iloc[0]
     share = (e.loc["L2", "change_auroc"] - 0.5) / (q.change_auroc - 0.5) * 100
+    # AUROC summarises every threshold at once; a clinician uses one. Without a
+    # sensitivity column the panel cannot say whether a longer horizon is more
+    # usable or merely easier to rank.
+    sens = f"{e.loc['L2','change_sens_at_90spec']*100:.1f} / {q.change_sens_at_90spec*100:.1f}"
+    SENS_BY_H[h] = sens.split(" / ")[0]
     rows.append([f"{h} h", f"{int(e.loc['L2','pairs']):,}", f"{e.loc['L2','changed_pct']:.1f}",
                  f"{e.loc['L2','change_auroc']:.3f}", f"{q.change_auroc:.3f}",
-                 f"+{sc.delta_auroc:.3f} ({sc.lo:+.3f} to {sc.hi:+.3f})", f"{share:.1f}"])
+                 f"+{sc.delta_auroc:.3f} ({sc.lo:+.3f} to {sc.hi:+.3f})", f"{share:.1f}", sens])
 panel_b = md(rows, ["Horizon", "Pairs", "Changed, %", "Frozen HMM", "Sequence model",
-                    "Sequence − frozen (95% CI)", "Discrimination retained, %"])
+                    "Sequence − frozen (95% CI)", "Retained, %",
+                    "Sens. at 90% spec., %"])
 
 cap = ("**Table 4.** Prediction of the next state. The event is that the state differs in "
        "the following window; it occurs in 9.3% of eICU pairs, so a rule predicting no "
@@ -108,7 +117,8 @@ cap = ("**Table 4.** Prediction of the next state. The event is that the state d
        "information each is permitted to use. The first three involve no fitting and are "
        "the discovery model used for a different operation; the rest were fitted on the "
        "MIMIC-IV training split and frozen before eICU was decoded. The sequence model is "
-       "included to set the ceiling and is the mean of three seeds. *Panel B, eICU across "
+       "included as an empirical benchmark and is the mean of three seeds. *Panel B, eICU "
+       "across "
        "horizons:* the frozen transition matrix raised to the corresponding power; the fitted "
        "predictors were trained separately in the MIMIC-IV training split for each horizon and "
        "frozen before external evaluation, never refitted in eICU. "
@@ -116,6 +126,15 @@ cap = ("**Table 4.** Prediction of the next state. The event is that the state d
        "discrimination above chance reached with no fitting, as a percentage of the sequence "
        "model's, a fraction of discrimination and not of information — rises with it, so what "
        "the four states discard is concentrated at short range. "
+       "The final column gives sensitivity at the threshold yielding 90% specificity, "
+       "as frozen model / sequence model, "
+       "for the frozen model and for the sequence model. It is reported because area "
+       "under the curve summarises every threshold at once whereas a clinician uses one: "
+       f"the frozen model identifies {SENS_BY_H[6]}% of transitions at six hours and "
+       f"{SENS_BY_H[24]}% at "
+       "twenty-four, so the longer horizons are more usable and not merely easier to "
+       "rank, and none of the three reaches a sensitivity that would support alerting on "
+       "an individual patient. "
        "Intervals are patient-clustered bootstrap percentiles; the horizon contrasts are "
        "paired within the same resample. Full results across all scopes are in "
        "Supplementary Table S4.")

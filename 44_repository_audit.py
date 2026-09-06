@@ -65,8 +65,18 @@ PUBLISH_EXACT = {
 def classify(p: Path):
     rel = p.relative_to(HERE).as_posix()
     ext = p.suffix.lower()
-    if p.name.startswith("."):
-        return "EXCLUDE", "hidden file"
+    parts = p.relative_to(HERE).parts
+    # A hidden *directory* hides its contents too. `.ipynb_checkpoints/` holds
+    # editor copies of files that were never meant to leave this machine, and
+    # checking only p.name let every one of them through.
+    if any(seg.startswith(".") for seg in parts):
+        return "EXCLUDE", "hidden file or hidden directory"
+    # The private review layer. Its notebooks are excluded as .ipynb, but the
+    # scripts that generate them are .py and were therefore being published --
+    # which would put the whole Chinese review commentary in the public repository,
+    # contradicting the line each notebook opens with.
+    if parts and parts[0] == "notebooks":
+        return "OMIT", "private review layer, not part of the analysis pipeline"
     if ext in NEVER_EXT:
         return "EXCLUDE", f"model binary or secret ({ext})"
     if ext in CODE_EXT:

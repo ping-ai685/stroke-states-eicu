@@ -1,4 +1,4 @@
-# Transportability and independent rediscovery of dynamic clinical states in acute stroke
+# External validation of dynamic clinical states in acute stroke: transportability and independent rediscovery
 
 Analysis code for the study of the same name, in which a four-state hidden Markov
 representation of the first 72 h of intensive care after acute stroke — derived in
@@ -86,11 +86,12 @@ subdirectory that the next one reads.
 | Term dictionaries | `14`–`16`, `18` | generate term lists for clinical review, validate what comes back, freeze |
 | Transport | `11`–`13`, `19`–`20` | treatment-free control first, then the full 21-variable model, then outcomes |
 | Heterogeneity | `22` | between-hospital variance components |
-| Independent refitting | `21`, `24` | fit eICU from scratch and compare with the discovery states |
+| Independent refitting | `21`, `24`, `46` | fit eICU from scratch, compare with the discovery states, and follow each discovery state's windows into the de novo solutions |
 | Prediction | `29`–`32`, `34`–`36`, `38`–`39` | the predictor ladder, three horizons, the sequence-model ceiling |
-| Verification | `23` | re-derive every headline number in the manuscript from its source file |
+| Verification | `23`, `47`, `49`, `50` | re-derive the headline numbers; trace every number printed in the submission back to a pipeline output; check that each figure draws the value its table prints; restate the manuscript's non-numeric claims as assertions |
 | Tables and figures | `25`, `26`, `28`, `33`, `40`–`42` | everything reported in the article |
-| Repository audit | `44` | the classification that produced this repository |
+| Document assembly | `48`, `51`, `52` | interleave the tables into the Results, build the reference document that fixes page layout, and assemble the submission files |
+| Repository audit | `44`–`45` | the classification that produced this repository, and the export that re-audits itself before it is kept |
 
 `figure_labels.py` holds the display text for the figures in both English and
 Chinese, because the investigator team worked bilingually and the two language
@@ -118,6 +119,13 @@ Two conventions are worth knowing before reading the code:
   from its source file; `28` checks each extracted table against the manuscript
   cell by cell; `31` asserts that the persistence null scores exactly 0.5, which
   is what caught a state-label misalignment during development.
+
+- **Five scripts read the manuscript, which is not in this repository.** `47`,
+  `48`, `50`, `51` and `52` operate on the manuscript source files, which belong
+  with the article rather than with the code. They are included so that the
+  checks applied to the manuscript can be read, not because they can be re-run
+  here. Everything else runs from the two databases and the frozen parameters.
+  `48` and `52` also need pandoc; `pandoc_path.py` finds it.
 
 ---
 

@@ -26,7 +26,7 @@ import torch
 from pathlib import Path
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_auc_score, average_precision_score
+from sklearn.metrics import roc_auc_score, average_precision_score, roc_curve
 
 HERE = Path(__file__).parent
 ROOT = HERE.parent
@@ -34,6 +34,17 @@ T1 = ROOT / "04_outputs/tables"
 PRED = HERE / "prediction"
 sys.path.insert(0, str(ROOT / "03_code"))
 from pomegranate_patches import CategoricalMixed          # noqa: F401
+
+
+def sens_at_90spec(y, score):
+    """Sensitivity at the threshold giving 90% specificity.
+
+    AUROC summarises every threshold at once; a clinician uses one. Reporting
+    only AUROC across horizons leaves open whether a longer horizon is actually
+    more usable or merely easier to rank.
+    """
+    fpr, tpr, _ = roc_curve(y, score)
+    return float(np.interp(0.10, fpr, tpr))
 
 EPS, SEED, NBOOT = 1e-4, 42, 200
 HORIZONS = [1, 2, 4]                                       # windows: 6 h, 12 h, 24 h
@@ -162,7 +173,8 @@ for h in HORIZONS:
                          "accuracy": round(float((Q.argmax(1) == y).mean()), 4),
                          "change_auroc": round(float(auc), 4),
                          "lo": round(float(lo), 4), "hi": round(float(hi), 4),
-                         "change_auprc": round(float(average_precision_score(chg, sc)), 4)})
+                         "change_auprc": round(float(average_precision_score(chg, sc)), 4),
+                         "change_sens_at_90spec": round(float(sens_at_90spec(chg, sc)), 4)})
         print(f"  {scope:<12} {len(d):>7,} pairs  {chg.mean()*100:>5.1f}% changed")
 
 R = pd.DataFrame(rows)
