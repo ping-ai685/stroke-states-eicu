@@ -21,13 +21,27 @@ OUT = HERE / "manuscript"
 PRED = HERE / "prediction"
 
 
+def cell(v):
+    """Render one value as the body of a markdown table cell.
+
+    A vertical bar inside a value is the column separator in a pipe table, so an
+    unescaped one silently splits the cell. The eICU `diagnosisstring` paths in S1
+    are pipe-delimited, and this is exactly what happened to them: every row of the
+    submitted S1 was shifted, and the subtype, decision, stay count, ICD codes and
+    note were pushed out of the table entirely. Escaping is what keeps a cell a cell.
+    """
+    if pd.isna(v):
+        return ""
+    return str(v).replace("|", r"\|")
+
+
 def md(df, cols=None, headers=None):
     d = df[cols] if cols else df
-    hdr = headers or list(d.columns)
+    hdr = [cell(h) for h in (headers or list(d.columns))]
     lines = ["| " + " | ".join(hdr) + " |",
              "|" + "|".join(["---"] * len(hdr)) + "|"]
     for _, r in d.iterrows():
-        lines.append("| " + " | ".join("" if pd.isna(v) else str(v) for v in r) + " |")
+        lines.append("| " + " | ".join(cell(v) for v in r) + " |")
     return "\n".join(lines)
 
 
@@ -126,15 +140,25 @@ blocks.append((
     "**Supplementary Table S4.** Prediction results across every analysis scope. "
     "*Upper panel:* paired differences between adjacent rungs of the ladder at a six-hour "
     "horizon, each recomputed within the same patient-clustered resample. Every difference "
-    "excludes zero in both databases and in all four eICU scopes, which is the claim made "
-    "in Table 8. *Lower panel:* area under the ROC curve for the event that the state "
+    "excludes zero in both databases and in all four eICU scopes. *Lower panel:* area under the ROC curve for the event that the state "
     "changes, by predictor, scope and horizon. The horizon analysis was run in the two "
     "primary scopes and the strictest one, and the sequence model in the two primary "
     "scopes only; the ordering of predictors is identical throughout.",
     a + "\n\n" + b))
 
+# S5 is produced by script 46, which follows each frozen state's windows into the
+# de novo solutions. It used to be pasted in by hand, so every rerun of this script
+# silently deleted it. Read it from 46's output instead.
+_s5 = OUT / "denovo_crosstab.md"
+assert _s5.exists(), f"缺少 {_s5.name}：先运行 46_denovo_crosstab.py"
+_t5 = _s5.read_text().strip()
+assert _t5.startswith("**Supplementary Table S5."), "46 的输出不是以 S5 图注开头"
+
 (OUT / "supplementary_tables.md").write_text(
-    "# Supplementary tables\n\n" + "\n\n\n".join(f"{c_}\n\n{t}" for c_, t in blocks) + "\n")
+    "# Supplementary tables\n\n"
+    + "\n\n\n".join(f"{c_}\n\n{t}" for c_, t in blocks)
+    + "\n\n\n" + _t5 + "\n")
 print(f"wrote {OUT/'supplementary_tables.md'}")
+print("  S5: 取自 46_denovo_crosstab.py 的输出")
 for i, (c_, t) in enumerate(blocks, 1):
     print(f"  S{i}: {len([l for l in t.splitlines() if l.startswith('|')]) - 2} data rows")

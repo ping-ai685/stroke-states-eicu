@@ -7,6 +7,8 @@ direction", "the ordering is identical throughout", "correlations above 0.97".
 Those were verified by reading a table, once, by one person. Each one below is
 restated as something a computer can fail.
 """
+import re
+
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -110,6 +112,51 @@ claim("结果正文的 AUROC 差距 0.057 → 0.018 与数据一致",
       and "from 0.057 to 0.018" in _rjE,
       f"6h 差 {_g6:.4f}，24h 差 {_g24:.4f}")
 
+# medRxiv requires an ethics declaration at submission, and most journals expect
+# one even for public de-identified data. Paper 2 had none until this was checked.
+# Every factual element below is sourced: the BIDMC waiver from the MIMIC-IV
+# release, the Safe Harbor certification from the eICU-CRD PhysioNet record.
+for _lang, _f, _must in [
+    ("EN", "declarations_EN.md",
+     ["Institutional Review Board of Beth Israel Deaconess Medical Center",
+      "Safe Harbor", "1031219-2", "Data or Specimens Only",
+      "no additional institutional review board approval"]),
+    ("CN", "declarations_CN.md",
+     ["Beth Israel Deaconess Medical Center", "Safe Harbor", "1031219-2",
+      "Data or Specimens Only", "无需追加机构审查委员会批准"]),
+]:
+    _t = re.sub(r"\s+", " ", (HERE / "manuscript" / _f).read_text())
+    _miss = [w for w in _must if w not in _t]
+    claim(f"{_lang} 伦理声明覆盖两个数据库且每项都有出处", not _miss, f"缺 {_miss}" if _miss else "")
+
+# JAMIA submission requirements, taken from the journal's General Instructions.
+# These are not claims about the data; they are conditions the file must meet
+# before it can be uploaded, and nothing else here was checking them.
+_tp = (HERE / "manuscript/title_page_EN.md").read_text()
+_kw = [k.strip() for k in
+       re.search(r"\*\*Keywords:\*\*([^\n]*)", _tp).group(1).split(";") if k.strip()]
+claim(f"关键词不超过 5 个（JAMIA: up to five）", len(_kw) <= 5, f"现有 {len(_kw)} 个")
+
+# JAMIA asks for "postal address, e-mail and telephone number" on the title page.
+# The authors decided not to print a telephone number; submission portals collect
+# the corresponding author's phone in the submission form itself. What must not
+# happen is shipping an unfinished placeholder, which is what this now checks.
+claim("扉页没有残留的占位符",
+      "TO BE SUPPLIED" not in _tp and "待补" not in
+      (HERE / "manuscript/title_page_CN.md").read_text(),
+      "通讯作者电话按作者决定不在扉页印出，由投稿系统表单提供")
+
+_fl = (HERE / "manuscript/figure_legends_jamia_EN.md").read_text()
+_blocks = [b for b in _fl.split("\n\n") if b.strip()]
+_ok = True
+for i in range(len(_blocks)):
+    if _blocks[i].strip().startswith("**Figure "):
+        nxt = _blocks[i + 1].strip() if i + 1 < len(_blocks) else ""
+        if not nxt.startswith("Alt text:"):
+            _ok = False
+claim("四张图的 alt text 紧接在各自图注之下，以「Alt text:」开头",
+      _ok and _fl.count("Alt text:") == 4, f"共 {_fl.count('Alt text:')} 条")
+
 print("\nSupplementary Table S4\n")
 
 # "Every difference excludes zero in both databases and in all four eICU scopes."
@@ -155,6 +202,49 @@ _s24 = f"{float(_MH[(_MH.scope=='eicu-full')&(_MH.horizon_h==24)&(_MH.model=='L2
 claim("表 4 图注引用的两个灵敏度与表格单元一致",
       f"identifies {_s6}% of transitions at six hours" in tj and f"{_s24}% at" in tj,
       f"图注应为 {_s6}% 与 {_s24}%")
+
+# Both preprints must be disclosed with their real DOIs: Paper 1's, and this
+# manuscript's own, which existed only as "at the time of this submission" until
+# medRxiv posted it.
+_clr = re.sub(r"\s+", " ", (HERE / "manuscript/cover_letter_JAMIA.md").read_text())
+for _label, _doi in [("Paper 1", "10.64898/2026.08.30.26361738"),
+                     ("this manuscript", "10.64898/2026.09.07.26362407")]:
+    claim(f"投稿信披露了{_label}的预印本 DOI", _doi in _clr, _doi)
+claim("投稿信不再写「投稿时同步发布」",
+      "at the time of this submission" not in _clr,
+      "DOI 已知，应写具体号")
+
+# The cover letter carries its own AI disclosure, and an editor reads it beside the
+# manuscript's. An earlier version said the tools contributed nothing to "scientific
+# conclusions" -- the same overstatement that was corrected in the manuscript and
+# not propagated here.
+_cl = re.sub(r"\s+", " ", (HERE / "manuscript/cover_letter_JAMIA.md").read_text())
+claim("投稿信的 AI 声明与正稿一致",
+      "including passages that interpret the findings" in _cl
+      and "not used for code, study design or analysis" in _cl
+      and "or scientific conclusions" not in _cl,
+      "两份声明必须说同一件事，编辑会并排看")
+
+# Internal consistency between two statements that are written far apart and are
+# read together by exactly one person: a reviewer. The AI disclosure says Claude
+# executed analyses at the authors' direction; Author contributions therefore
+# cannot also say the first author "performed all analyses". A reader who notices
+# the pair reads it as one of the two being untrue.
+for _lang, _f, _exec, _forbidden, _required in [
+    ("EN", "declarations_EN.md", "to execute analyses at the authors' direction",
+     ["performed all analyses"], "directed and verified all analyses"),
+    ("CN", "declarations_CN.md", "在作者指示下运行分析",
+     ["完成全部分析"], "主导并核验全部分析"),
+]:
+    # Source files are hand-wrapped, so a phrase can straddle a line break.
+    # Compare on whitespace-normalised text, not on the file's line layout.
+    _t = re.sub(r"\s+", " ", (HERE / "manuscript" / _f).read_text())
+    if _exec in _t:
+        _clash = [w for w in _forbidden if w in _t]
+        claim(f"{_lang} 作者贡献与 AI 声明不矛盾（AI 执行分析 → 作者「主导并核验」）",
+              not _clash and _required in _t,
+              (f"与声明冲突：{_clash}" if _clash else "") +
+              ("" if _required in _t else f" 缺「{_required}」"))
 
 # Wording, not arithmetic. "独立可重发现性" stacks 可+重+发现+性 into a
 # nominalisation Chinese does not form, and a reader has to guess where it splits.
@@ -248,6 +338,50 @@ log = pd.read_csv(HERE / "manuscript/supplementary_amendment_log.csv")
 n_no = int((log.outcome_results_visible_at_the_time == "No").sum())
 claim("十五条修订中十四条在无结局结果可见时做出",
       len(log) == 15 and n_no == 14, f"共 {len(log)} 条，结局不可见 {n_no} 条")
+
+# ---- 表格没有被分隔符拆开 -------------------------------------------------
+# Read the built docx, not the markdown it came from. A cell value containing the
+# pipe character is the column separator of a markdown table, and an unescaped one
+# splits the cell silently: this is how every row of S1 came to be shifted, its
+# stay counts, ICD codes and adjudication notes pushed out of the table, in both
+# the JAMIA package and the published preprint. Counting cells in the generator's
+# own output would not have caught it — the generator is what produced the split.
+import zipfile as _zip, html as _html
+_RUN = re.compile(r"<w:t(?:\s[^>]*)?>(.*?)</w:t>", re.S)
+
+
+def _tables(path):
+    x = _zip.ZipFile(path).read("word/document.xml").decode()
+    for t in re.findall(r"<w:tbl>.*?</w:tbl>", x, re.S):
+        yield [[_html.unescape("".join(_RUN.findall(c)))
+                for c in re.findall(r"<w:tc>.*?</w:tc>", r, re.S)]
+               for r in re.findall(r"<w:tr[ >].*?</w:tr>", t, re.S)]
+
+
+for _f in ["manuscript/supplementary_tables.docx",
+           "manuscript/manuscript_JAMIA_EN.docx",
+           "manuscript/manuscript_JAMIA_CN.docx"]:
+    _ragged = [(i, j, len(r), len(t[0]))
+               for i, t in enumerate(_tables(HERE / _f))
+               for j, r in enumerate(t) if len(r) != len(t[0])]
+    claim(f"{_f.split('/')[-1]} 每张表每一行的单元格数都与表头相同",
+          not _ragged, "无参差" if not _ragged else f"{len(_ragged)} 行不符: {_ragged[:3]}")
+
+# S1 must carry its adjudication, not just the path: 35 paths, 6 columns, and a
+# stay count on every row that agrees with the phenotype table it was built from.
+_s1 = next(t for t in _tables(HERE / "manuscript/supplementary_tables.docx")
+           if t[0][0].startswith("diagnosisstring"))
+_body = _s1[1:]
+_src = pd.read_csv(HERE / "frozen_phenotype/phenotype_paths_frozen.csv")
+_ok = (len(_body) == 35 and all(len(r) == 6 for r in _body)
+       and all(r[3].isdigit() for r in _body)
+       and all(r[0].count("|") >= 2 for r in _body))
+claim("S1 完整：35 条路径、6 列、每行都有整数 Stays、路径中的竖线未被当作分隔符",
+      _ok, f"{len(_body)} 行；Stays 合计 {sum(int(r[3]) for r in _body if r[3].isdigit())}")
+
+claim("S1 的 Stays 与裁定表逐行一致",
+      sorted(int(r[3]) for r in _body) == sorted(int(v) for v in _src.n_stays),
+      f"docx 合计 {sum(int(r[3]) for r in _body)}，来源合计 {int(_src.n_stays.sum())}")
 
 print()
 bad = [t for ok, t, _ in R if not ok]

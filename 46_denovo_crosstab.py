@@ -35,8 +35,15 @@ def crosstab(assign_file, state_col, match_file, k):
     m = frozen.merge(a, on=["patientunitstayid", "window_idx"])
     m["frozen"] = m.state.map(SHORT)
     mt = pd.read_csv(HERE / "results_denovo" / match_file).set_index("eicu_state")
-    lab = {i: f"de novo {i} (best match: {SHORT[mt.loc[i,'best_match_state']]}, r = "
-              f"{mt.loc[i,'best_match_correlation']:.2f})" for i in mt.index}
+    # A 55-character column header wraps to three lines and makes the table
+    # unreadable. The full state names are in the row labels and in the legend;
+    # here one word is enough to say which discovery state each column resembles.
+    TERSE = {"Preserved, no support": "preserved",
+             "Impaired, respiratory support": "respiratory",
+             "Impaired, renal dysfunction": "renal",
+             "Impaired, no support": "impaired, no support"}
+    lab = {i: f"de novo {i} (≈{TERSE[SHORT[mt.loc[i,'best_match_state']]]}, "
+              f"r {mt.loc[i,'best_match_correlation']:.2f})" for i in mt.index}
     m["denovo"] = m[state_col].map(lab)
     ct = (pd.crosstab(m["frozen"], m["denovo"], normalize="index") * 100).reindex(ORDER)
     return ct.round(1), len(m)
