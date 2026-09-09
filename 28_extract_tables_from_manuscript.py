@@ -17,8 +17,11 @@ import zipfile
 from pathlib import Path
 
 HERE = Path(__file__).parent
-SRC = HERE / "manuscript/manuscript_draft_v7_EN.docx"
-OUT = HERE / "submission/tables"
+# The nine-table draft this was written for. JAMIA takes four tables and five
+# supplementary ones, built by 41 and 42, so this script and its output are the
+# record of the earlier structure rather than part of the submission pipeline.
+SRC = HERE / "manuscript/_superseded/manuscript_draft_v7_EN.docx"
+OUT = HERE / "submission_superseded_9tables/tables"
 
 MD = HERE / "manuscript/tables_all.md"
 

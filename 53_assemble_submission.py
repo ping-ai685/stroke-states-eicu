@@ -1,12 +1,12 @@
 """
 Paper 2: assemble the folder that gets uploaded to JAMIA, and nothing else.
 
-manuscript/ holds seventeen .docx files. Three of them are the submission; the
-rest are superseded drafts, the Chinese working version, the pandoc reference
-document, and one file called manuscript_JAMIA_EN_review.docx that differs from
-the real one by six characters in its name. Choosing among those at the moment of
-upload is an avoidable risk, so this script produces a directory containing
-exactly what is uploaded, under names that say what each file is.
+manuscript/ is a working directory, and choosing the upload from among its .docx
+files by hand is an avoidable risk: it once held seventeen of them, including a
+manuscript_JAMIA_EN_review.docx that differed from the real one by six characters
+in its name. The superseded drafts now sit in manuscript/_superseded/, but the
+working directory will fill up again, so this script still produces a directory
+containing exactly what is uploaded, under names that say what each file is.
 
 It refuses to assemble anything if the verification suite does not pass.
 """
