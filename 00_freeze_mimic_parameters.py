@@ -28,9 +28,12 @@ Outputs (frozen_params/):
 import numpy as np
 import pandas as pd
 import sys
+from pathlib import Path
 import torch
 
-ROOT = "/Users/pinglei/Desktop/卒中流程预测MIMIC IV data"
+# 从脚本自身的位置推导，不写死某一台机器上的项目路径。
+# 原先这里是一个绝对路径，clone 下来的人跑第一步就会失败。
+ROOT = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(0, f"{ROOT}/03_code")
 import feature_spec
 

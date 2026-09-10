@@ -106,8 +106,19 @@ python -m venv .venv && source .venv/bin/activate
 pip install numpy pandas scipy scikit-learn statsmodels matplotlib torch pomegranate
 ```
 
-Set the paths to your own copies of the two databases at the top of `02` and `03`,
-then run the scripts in numerical order. Several take tens of minutes; the
+Point the two environment variables at your own copies of the databases, then run
+the scripts in numerical order:
+
+```bash
+export EICU_DIR="/path/to/eicu-collaborative-research-database-2.0"
+export MIMIC_DIR="/path/to/mimic-iv-3.1"
+```
+
+Each should name the directory holding the tables — `patient.csv` for eICU,
+`hosp/` and `icu/` for MIMIC-IV. `data_paths.py` resolves them and fails with the
+variable name and the paths it tried, rather than a bare file-not-found. Ten
+scripts read the databases; earlier versions of this README said to edit two files,
+which was wrong even then. Several take tens of minutes; the
 sequence model (`38`) trains three seeds at each of three horizons.
 
 Two conventions are worth knowing before reading the code:

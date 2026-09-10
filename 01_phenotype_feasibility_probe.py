@@ -19,7 +19,11 @@ Reads eICU only; writes nothing.
 import pandas as pd
 from collections import Counter
 
-B = "/Volumes/Lexar/research data/eICU dataset/eicu-collaborative-research-database-2.0"
+import sys
+sys.path.insert(0, str(Path(__file__).parent))
+import data_paths                                    # noqa: E402
+
+B = str(data_paths.eicu())
 
 dx = pd.read_csv(f"{B}/diagnosis.csv.gz",
                  usecols=["patientunitstayid", "diagnosisstring", "icd9code", "diagnosispriority"])

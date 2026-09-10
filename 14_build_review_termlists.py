@@ -29,7 +29,11 @@ import pandas as pd
 import re
 from pathlib import Path
 
-B = "/Volumes/Lexar/research data/eICU dataset/eicu-collaborative-research-database-2.0"
+import sys
+sys.path.insert(0, str(Path(__file__).parent))
+import data_paths                                    # noqa: E402
+
+B = str(data_paths.eicu())
 HERE = Path(__file__).parent
 OUT = HERE / "review"; OUT.mkdir(exist_ok=True)
 STAYS = set(pd.read_csv(HERE / "cohort/patient_level_cohort.csv").patientunitstayid)

@@ -30,7 +30,11 @@ import pandas as pd
 import time
 from pathlib import Path
 
-B = "/Volumes/Lexar/research data/eICU dataset/eicu-collaborative-research-database-2.0"
+import sys
+sys.path.insert(0, str(Path(__file__).parent))
+import data_paths                                    # noqa: E402
+
+B = str(data_paths.eicu())
 HERE = Path(__file__).parent
 R = HERE / "review_returned"
 OUT = HERE / "windows"

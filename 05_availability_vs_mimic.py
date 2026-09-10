@@ -24,7 +24,11 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-B = "/Volumes/Lexar/research data/eICU dataset/eicu-collaborative-research-database-2.0"
+import sys
+sys.path.insert(0, str(Path(__file__).parent))
+import data_paths                                    # noqa: E402
+
+B = str(data_paths.eicu())
 HERE = Path(__file__).parent
 T1 = HERE.parent / "04_outputs/tables"
 OUT = HERE / "audit"

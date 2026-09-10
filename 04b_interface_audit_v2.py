@@ -33,7 +33,11 @@ import numpy as np
 from pathlib import Path
 import time
 
-B = "/Volumes/Lexar/research data/eICU dataset/eicu-collaborative-research-database-2.0"
+import sys
+sys.path.insert(0, str(Path(__file__).parent))
+import data_paths                                    # noqa: E402
+
+B = str(data_paths.eicu())
 HERE = Path(__file__).parent
 OUT = HERE / "audit"; OUT.mkdir(exist_ok=True)
 WINDOW, NW = 360, 12
