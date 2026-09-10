@@ -339,6 +339,61 @@ n_no = int((log.outcome_results_visible_at_the_time == "No").sum())
 claim("十五条修订中十四条在无结局结果可见时做出",
       len(log) == 15 and n_no == 14, f"共 {len(log)} 条，结局不可见 {n_no} 条")
 
+import zipfile as _zip, html as _html
+_RUN = re.compile(r"<w:t(?:\s[^>]*)?>(.*?)</w:t>", re.S)
+
+# ---- 扉页印的字数不能是陈的 --------------------------------------------------
+# 加了四处图引用之后正文多了 8 个词，而扉页上的字数是手写的常数，不会跟着动。
+# 一个和正文对不上的字数，编辑一眼就能看出来。
+_tp = (HERE / "manuscript/title_page_EN.md").read_text(encoding="utf-8")
+_stated = int(re.search(r"main text (\d+)", _tp).group(1))
+_main = " ".join((HERE / "manuscript" / f).read_text(encoding="utf-8")
+                 for f in ["intro_jamia_EN.md", "methods_jamia_EN.md",
+                           "results_jamia_EN.md", "discussion_jamia_EN.md"])
+_main = re.sub(r"^\|.*$", "", _main, flags=re.M)
+_main = re.sub(r"^#+ .*$", "", _main, flags=re.M)
+_counted = len(re.findall(r"\S+", re.sub(r"[*`_]", " ", _main)))
+claim("扉页字数与正文实际长度相符（容差 5%）",
+      abs(_stated - _counted) / _counted < 0.05,
+      f"扉页 {_stated}，按同一口径数得 {_counted}")
+claim("扉页字数未超 JAMIA 的 4000 词上限", _stated <= 4000, f"{_stated}/4000")
+_cn = (HERE / "manuscript/title_page_CN.md").read_text(encoding="utf-8")
+claim("中英扉页的字数一致", str(_stated) in _cn, f"英文 {_stated}")
+
+# ---- 每张图和每张表都必须在正文里被引用 ------------------------------------
+# JAMIA 编辑部因为这一条退回过一次投稿：四张图在正文里一次都没有被引用，
+# 只出现在文末的图注里。此前 58 条检查里没有任何一条看这件事——它们都在核对
+# "印出来的东西对不对"，没有人问"该被指到的东西有没有被指到"。
+# 引用要在正文里数，不能算图注段，否则每张图都会"被自己引用"一次。
+def _body_before_legends(path):
+    x = _zip.ZipFile(path).read("word/document.xml").decode()
+    t = re.sub(r"\s+", " ", _html.unescape("".join(_RUN.findall(x))))
+    cut = t.rfind("Figure legends")
+    if cut < 0:
+        cut = t.rfind("图注")
+    return t[:cut] if cut > 0 else t
+
+
+for _f, _fig, _tab in [("manuscript/manuscript_JAMIA_EN.docx", "Figure", "Table"),
+                       ("manuscript/manuscript_JAMIA_CN.docx", "图", "表")]:
+    _b = _body_before_legends(HERE / _f)
+    _miss_f = [n for n in range(1, 5)
+               if not re.search(_fig + r"\s*" + str(n) + r"(?![0-9])", _b)]
+    _miss_t = [n for n in range(1, 5)
+               if not re.search(_tab + r"\s*" + str(n) + r"(?![0-9])", _b)]
+    claim(f"{_f.split('/')[-1]} 四张图都在正文里被引用",
+          not _miss_f, "全部引用" if not _miss_f else f"缺 {_miss_f}")
+    claim(f"{_f.split('/')[-1]} 四张表都在正文里被引用",
+          not _miss_t, "全部引用" if not _miss_t else f"缺 {_miss_t}")
+
+# 补充表同理：S1–S5 必须在正文或图注里被指到，否则读者不知道去哪里找
+_all_en = re.sub(r"\s+", " ", _html.unescape("".join(_RUN.findall(
+    _zip.ZipFile(HERE / "manuscript/manuscript_JAMIA_EN.docx").read("word/document.xml").decode()))))
+_miss_s = [n for n in range(1, 6)
+           if not re.search(r"Supplementary Table S" + str(n) + r"(?![0-9])", _all_en)]
+claim("补充表 S1–S5 都在正文里被引用", not _miss_s,
+      "全部引用" if not _miss_s else f"缺 {_miss_s}")
+
 # ---- 表格没有被分隔符拆开 -------------------------------------------------
 # Read the built docx, not the markdown it came from. A cell value containing the
 # pipe character is the column separator of a markdown table, and an unescaped one
@@ -346,10 +401,6 @@ claim("十五条修订中十四条在无结局结果可见时做出",
 # stay counts, ICD codes and adjudication notes pushed out of the table, in both
 # the JAMIA package and the published preprint. Counting cells in the generator's
 # own output would not have caught it — the generator is what produced the split.
-import zipfile as _zip, html as _html
-_RUN = re.compile(r"<w:t(?:\s[^>]*)?>(.*?)</w:t>", re.S)
-
-
 def _tables(path):
     x = _zip.ZipFile(path).read("word/document.xml").decode()
     for t in re.findall(r"<w:tbl>.*?</w:tbl>", x, re.S):

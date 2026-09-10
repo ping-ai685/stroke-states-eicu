@@ -75,8 +75,15 @@ def classify(p: Path):
     # scripts that generate them are .py and were therefore being published --
     # which would put the whole Chinese review commentary in the public repository,
     # contradicting the line each notebook opens with.
-    if parts and parts[0] == "notebooks":
-        return "OMIT", "private review layer, not part of the analysis pipeline"
+    # The private tier: the review notebooks and the operations manual. Both are
+    # written for the investigators, not for readers of the article. Their content
+    # is caught by extension (.ipynb, .md, .docx), but the scripts that build and
+    # check them are .py and were therefore classified as analysis code -- which
+    # would publish the tooling for a document that is not published, and, for the
+    # notebooks, the whole Chinese review commentary. The rule has to name the
+    # directory, because "it is a .py file" is exactly what is wrong about it.
+    if parts and parts[0] in ("notebooks", "manual"):
+        return "OMIT", "private tier (review notebooks / operations manual)"
     if ext in NEVER_EXT:
         return "EXCLUDE", f"model binary or secret ({ext})"
     if ext in CODE_EXT:

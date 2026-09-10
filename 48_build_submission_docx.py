@@ -8,6 +8,7 @@ This script fixes the order in code, rebuilds both languages, and then verifies
 that what came out contains what went in.
 """
 import re
+import unicodedata
 import subprocess
 import sys
 import zipfile
@@ -53,6 +54,19 @@ def _char_twips(half_points):
     return half_points * 5
 
 
+def disp_len(text):
+    """Character count in *display* widths, not code points.
+
+    A CJK character occupies about twice the width of an average Latin one at the
+    same point size, so counting code points starves any column whose header or
+    content is Chinese. In the Chinese manuscript and in the operations manual this
+    showed up as a five-character header wrapped onto three lines beside a column of
+    short numbers that had been given four inches.
+    """
+    return sum(2 if unicodedata.east_asian_width(c) in ("W", "F") else 1
+               for c in text)
+
+
 def fit_tables(path, avail=9360):
     """Give each column the width its content needs, padding included.
 
@@ -89,10 +103,10 @@ def fit_tables(path, avail=9360):
                 if c >= len(g):
                     continue
                 txt = " ".join("".join(RUN.findall(g[c])).split())
-                tot += len(txt)
+                tot += disp_len(txt)
                 f = BOLD if r_i == 0 else 1.0
                 for tok in txt.split():
-                    lw = max(lw, len(tok) * f)
+                    lw = max(lw, disp_len(tok) * f)
             longest.append(min(lw, MAX_UNBREAKABLE * BOLD))
             bulk.append(tot / max(1, len(grid)))
 
