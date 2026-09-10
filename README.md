@@ -103,8 +103,12 @@ versions of each figure are drawn by the same plotting code.
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install numpy pandas scipy scikit-learn statsmodels matplotlib torch pomegranate
+pip install -r requirements.txt
 ```
+
+`requirements.txt` pins the versions the analysis was run with. Pin `pomegranate`
+in particular: `pomegranate_patches.py` works around a defect in 1.1.2, and a
+different release may not need the patch, or may not be fixed by it.
 
 Point the two environment variables at your own copies of the databases, then run
 the scripts in numerical order:

@@ -1,0 +1,26 @@
+# 复现这条流程所需的包，版本为分析实际运行时的版本。
+#
+# pomegranate 的版本必须锁死。1.1.2 的 IndependentComponents.log_probability()
+# 在切片时会取整个输入张量，pomegranate_patches.py 就是绕开它的；换一个版本，
+# 那个补丁可能不再需要，也可能不再正确。隐马尔可夫模型的拟合结果对这个库敏感。
+#
+# 安装：
+#     python -m venv .venv && source .venv/bin/activate
+#     pip install -r requirements.txt
+
+pandas==2.3.3
+numpy==2.0.2
+scipy==1.13.1
+scikit-learn==1.6.1
+statsmodels==0.14.6
+pomegranate==1.1.2
+torch==2.8.0
+matplotlib==3.9.4
+pillow==11.3.0
+lifelines==0.30.0
+
+# 只有生成投稿文件和 notebook 时才需要
+nbformat==5.10.4
+nbconvert==7.17.1
+jupyterlab==4.5.10
+pypdf==6.17.0

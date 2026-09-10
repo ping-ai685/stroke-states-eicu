@@ -51,6 +51,11 @@ CN_ONLY = {
 
 PUBLISH_EXACT = {
     "README.md",
+    # 锁定版本的依赖清单。.txt 一律被当成工作笔记，所以它一度被判为 OMIT——
+    # 而 README 让读者安装这些包却不给版本，是公开仓库里最实际的可复现性缺口：
+    # pomegranate 换一个版本，隐马尔可夫模型的拟合结果就可能不同。
+    # requirements-demo.txt 不在此列，它服务的是私有层的演示 notebook。
+    "requirements.txt",
     "frozen_dictionary_v1.0/MANIFEST.csv",
     "frozen_dictionary_v1.0/terms_drugs.csv",
     "frozen_dictionary_v1.0/terms_urine_sources.csv",
